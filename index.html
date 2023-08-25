@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js" integrity="sha512-VJ6+sp2E5rFQk05caiXXzQd1wBABpjEj1r5kMiLmGAAgwPItw1YpqsCCBtq8Yr1x6C49/mTpRdXtq8O2RcZhlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <title>Socket-IO Group-Chat</title>
+</head>
+<body>
+    <h1>Socket-IO</h1>
+    <div id="new-div">
+        <div id="exists-error" style="color: red;"></div>
+        <input type="text" id="name" name="name" placeholder="Enter Name">
+        <button type="button" onclick="setUserName()" >Submit</button>
+    </div>
+
+    <script>
+        var socket = io();
+        let user;
+
+        function setUserName(){
+            if(document.getElementById('name').value == ''){
+                alert('Please enter your name');
+            }else{
+                socket.emit('setUserName', document.getElementById('name').value);
+            }
+        };
+        socket.on('userExists', function(data){
+            document.getElementById('exists-error').innerHTML = data;
+        });
+
+        socket.on('setuser', function(data){
+            user = data.username;
+            document.getElementById('new-div').innerHTML = `
+            <input type="text" id="message" placeholder="Enter Message">\
+            <button type="button" onclick="sendMessage()" >Send</button>\
+            <div id="messages-container"></div>\
+            `
+        });
+
+        function sendMessage(){
+            var message = document.getElementById('message').value;
+            if(message !== ''){
+                console.log(message)
+                // document.getElementById('message').value = '';
+                socket.emit('msg', {message:message, user:user})
+                // document.getElementById('messages-container').innerHTML += `<b> ${user} Connected </b>`;
+            }
+        }
+
+        socket.on('newmsg', function(data){
+            console.log(data)
+            if(user){
+                document.getElementById('messages-container').innerHTML += 
+                '\
+                <div>\
+                    <b> '+data.user+' </b>:'+data.message+'\
+                    </div>';
+            }
+        })
+
+    </script>
+</body>
+</html>
